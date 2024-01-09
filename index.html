@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Howdz Static</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script src="https://cdn.staticfile.net/marked/11.1.1/marked.min.js"></script>
+  <script>
+    const getReadme = async () => {
+      const res = await fetch('./README.md');
+      const text = await res.text();
+      return text;
+    }
+    const init = async () => {
+      const readme = await getReadme();
+      const md2html = marked.parse(readme);
+      document.getElementById('content').innerHTML = md2html;
+    }
+    init();
+  </script>
+</body>
+</html>

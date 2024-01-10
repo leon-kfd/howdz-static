@@ -16,11 +16,17 @@
       return text;
     }
     const init = async () => {
-      const readme = await getReadme();
-      const md2html = marked.parse(readme);
-      document.getElementById('content').innerHTML = md2html;
+      try {
+        const readme = await getReadme();
+        const md2html = marked.parse(readme);
+        document.getElementById('content').innerHTML = md2html;
+      } catch {
+        document.getElementById('content').innerHTML = readme;
+      }
     }
-    init();
+    document.addEventListener('DOMContentLoaded', function () {
+      init();
+    })
   </script>
 </body>
 </html>

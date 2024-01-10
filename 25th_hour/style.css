@@ -55,7 +55,7 @@ a {
   animation-duration: 60s;
   animation-iteration-count: infinite;
   animation-timing-function: linear;
-  animation-delay: 2s;
+  animation-delay: 0.2s;
 }
 
 /* Background gradients

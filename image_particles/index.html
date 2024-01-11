@@ -13,7 +13,7 @@
 <body>
   <div id="wrapper">
     <div id="canvas_container"></div>
-    <img id="first" src="./first.jpg" style="display:none;">
+    <img id="first" src="./img/01.jpg" style="display:none;">
   </div>
   <!-- <script src="./three.min.js"></script>
   <script src="./gsap.min.js"></script> -->
@@ -49,12 +49,12 @@
 
         Promise.all([
           webgl.texture,
-          webgl.loader.load('https://dogefs.s3.ladydaily.com/~/source/unsplash/photo-1517685772163-3967b3d40a3e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=250'),
-          webgl.loader.load('https://dogefs.s3.ladydaily.com/~/source/unsplash/photo-1502602898657-3e91760cbb34?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=250'),
-          webgl.loader.load('https://cdn.kongfandong.cn/img/wallpaper-thumb/02.jpg?imageView2/2/w/240'),
-          webgl.loader.load('https://dogefs.s3.ladydaily.com/~/source/unsplash/photo-1557264322-b44d383a2906?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=250'),
-          webgl.loader.load('https://cdn.kongfandong.cn/img/wallpaper-thumb/05.jpg?imageView2/2/w/240'),
-          webgl.loader.load('https://dogefs.s3.ladydaily.com/~/source/unsplash/photo-1593435221011-e009143b031e?crop=entropy&cs=tinysrgb&fit=crop&fm=jpg&ixlib=rb-4.0.3&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=250'),
+          webgl.loader.load('./img/02.jpg'),
+          webgl.loader.load('./img/03.jpg'),
+          webgl.loader.load('./img/04.jpg'),
+          webgl.loader.load('./img/05.jpg'),
+          webgl.loader.load('./img/06.jpg'),
+          webgl.loader.load('./img/07.jpg'),
           // loadAsync("https://i.imgur.com/FyHLAY8.mp4")
         ]).then(result => {
           webgl.texturesArray = result;

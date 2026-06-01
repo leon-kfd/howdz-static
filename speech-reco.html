@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>语音输入</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0c0c10;
+      --surface: #16161c;
+      --border: #ffffff0c;
+      --border-focus: #6ee7b740;
+      --text: #d4d4dc;
+      --text-dim: #5a5a6e;
+      --accent: #6ee7b7;
+      --accent-glow: #6ee7b720;
+      --danger: #f87171;
+      --danger-glow: #f8717130;
+      --font: 'Noto Sans SC', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      animation: fadeUp 0.6s ease-out;
+    }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    textarea {
+      flex: 1;
+      min-height: 120px;
+      padding: 1rem 1.2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 1rem;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    textarea::placeholder {
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* ── Mic button ── */
+    .mic-btn {
+      width: 56px;
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      outline: none;
+      flex-shrink: 0;
+    }
+    .mic-btn svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: var(--text-dim);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 0.3s;
+    }
+    .mic-btn:hover {
+      border-color: var(--border-focus);
+    }
+    .mic-btn:hover svg {
+      stroke: var(--accent);
+    }
+    .mic-btn.recording {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 3px var(--danger-glow);
+      animation: breathe 2s ease-in-out infinite;
+    }
+    .mic-btn.recording svg {
+      stroke: var(--danger);
+    }
+
+    /* ── Status ── */
+    .status {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+      text-align: center;
+      transition: color 0.3s;
+      min-height: 1.2em;
+    }
+    .status.active {
+      color: var(--danger);
+    }
+
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 3px var(--danger-glow); }
+      50% { box-shadow: 0 0 0 6px var(--danger-glow); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .mic-btn { min-height: 80px; width: 48px; }
+      textarea { min-height: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-row">
+      <textarea id="input" placeholder="点击右侧麦克风，开始语音输入..." autofocus></textarea>
+      <button class="mic-btn" id="micBtn" aria-label="语音输入">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const micBtn = document.getElementById('micBtn');
+    const status = document.getElementById('status');
+
+    let isRecording = false;
+    let recognition = null;
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      status.textContent = '当前浏览器不支持语音识别，请使用 Chrome';
+      micBtn.disabled = true;
+      micBtn.style.opacity = 0.3;
+    }
+
+    function initRecognition() {
+      const rec = new SR();
+      rec.lang = 'zh-CN';
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      let finalText = input.value;
+
+      rec.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const t = e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            finalText += t;
+          } else {
+            interim += t;
+          }
+        }
+        input.value = finalText + interim;
+      };
+
+      rec.onerror = (e) => {
+        if (e.error === 'no-speech' && isRecording) {
+          try { rec.start(); } catch(_) {}
+          return;
+        }
+        if (e.error === 'not-allowed') {
+          stop();
+          status.textContent = '麦克风权限被拒绝';
+          return;
+        }
+        console.error('Speech error:', e.error);
+      };
+
+      rec.onend = () => {
+        if (isRecording) {
+          try { rec.start(); } catch(_) {}
+        }
+      };
+
+      return rec;
+    }
+
+    function start() {
+      if (!SR) return;
+      recognition = initRecognition();
+      try {
+        recognition.start();
+        isRecording = true;
+        micBtn.classList.add('recording');
+        status.textContent = '正在聆听...';
+        status.classList.add('active');
+      } catch(e) {
+        status.textContent = '启动失败: ' + e.message;
+      }
+    }
+
+    function stop() {
+      isRecording = false;
+      if (recognition) {
+        recognition.onend = null;
+        try { recognition.stop(); } catch(_) {}
+        recognition = null;
+      }
+      micBtn.classList.remove('recording');
+      status.textContent = '';
+      status.classList.remove('active');
+    }
+
+    micBtn.addEventListener('click', () => isRecording ? stop() : start());
+  </script>
+</body>
+</html>
